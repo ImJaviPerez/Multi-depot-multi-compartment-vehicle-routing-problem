@@ -1,11 +1,19 @@
 /*
 
 Nombre: md.mc.ml.mod
-Autor: F. Javier Perez
+Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
 Fecha: 11-04-2018
 version: 1.0
 
+https://gist.github.com/ImJaviPerez/
+
 Descripcion:
+Este programa esta basado en un articulo de 
+Alinaghian, Mahdi & Shokouhi, Nadia, 2018. 
+"Multi-depot multi-compartment vehicle routing problem, solved by a hybrid adaptive large neighborhood search,"
+Omega, Elsevier, vol. 76(C), pages 85-99. 
+https://ideas.repec.org/a/eee/jomega/v76y2018icp85-99.html
+
 Este programa fuciona con un fichero externo de datos.
 - Debe tener el mismo nombre que este programa con la extension ".dat"
 - En Gusek se debe habilitar la opcion: "Tools > Enable use of external data files"
@@ -19,21 +27,27 @@ TO-DO:
 param num_nodos, integer, >= 2;
 param num_depositos, integer, >= 1;
 param num_clientes, integer, >= 1;
-param num_productos, integer, >= 1;
+param num_productos, integer, >= 1; 
 param num_vehiculos, integer, >= 1;
-
-
 
 
 # CONJUNTOS basicos ----------------------
 # Ntot el conjunto de todos los nodos ###; denotado por los indices i y j
 set Ntot := 1..num_nodos;
 
+# # ND el conjunto de depositos
+# set ND := 1..num_depositos;
+# 
+# # Nv el conjunto de clientes
+# set Nv := 1..num_clientes;
+###### ¿¿ Ntot = ND UNION Nv ????????????????????????????????
+###### O SEA  ND y Nv ¿SON SUBCONJUNTOS DE Ntot????????
 # ND el conjunto de depositos
 set ND := 1..num_depositos;
 
 # Nv el conjunto de clientes
-set Nv := 1..num_clientes;
+set Nv := (num_depositos+1)..num_clientes;
+
 
 # G el conjunto de productos; denotado por el indice g
 set G := 1..num_productos;
@@ -51,7 +65,7 @@ param c{i in Ntot, j in Ntot};
 
 # Q_g la capacidad del compartimento del vehiculo dedicado al producto g
 ## K_x_G = conjunto vehiculos por producto
-# #### �SOLO DEPENDE DEL PRODUCTO?�NO DEPENDE DEL VEHICULO?
+# #### ¿SOLO DEPENDE DEL PRODUCTO?¿NO DEPENDE DEL VEHICULO?
 ############### g o (k, g) ????????????????????????????????
 param Q{g in G};
 
@@ -60,14 +74,13 @@ param DQ{i in ND};
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
 # param MC{k in K};
-param MC :=  1000;
+param MC, integer, >= 1;
 
 # fk el costo fijo de usar el vehiculo k
-param fk{k in K};
-
+param fk{k in K}, >= 0;
 
 # M un numero muy grande
-param M :=  1e10; #infinity
+param M, integer, >= 1;
 
 
 
@@ -75,7 +88,8 @@ param M :=  1e10; #infinity
 # x_ijk equivalen a 1 si la ruta entre los nodos i y j es recorrida por el vehiculo k, y es cero; en caso contrario
 # Segun la restriccion 14, x_ijk es binaria
 # var x{i in Ntot, j in Ntot, k in K}, binary;
-var x{i in ND, j in Nv, k in K}, binary;
+# var x{i in ND, j in Nv, k in K}, binary;
+var x{i in Ntot, j in Ntot, k in K}, binary;
 
 # y_igk igual a 1 si la demanda del nodo i para el producto g es entregada por el vehiculo k;es cero, de lo contrario
 # Segun la restriccion 14, y_igk es binaria
@@ -84,13 +98,13 @@ var y{i in Ntot, g in Ntot, k in K}, binary;
 # u_k igual a 1 si el vehiculo k es usado, 0 en caso contario
 var u{k in K}, binary;
 
-# ST ik variable used for elimination of sub-tours
-# ############### �ES ENTERO???????????????????????
+# ST_ik se usa para la eliminacion de sub-tours
+# ############### ¿ES ENTERO???????????????????????
 var ST{i in Ntot, k in K}, integer;
 
 
 ########## EN LAS RESTRICCIONES 
-######### �NO HAY QUE PONER UNA RESTRICCION DEL TIPO 
+######### ¿NO HAY QUE PONER UNA RESTRICCION DEL TIPO 
 ######### "i != j" PARA EVITAR QUE SE VAYA DE UN NODO AL MISMO NODO????????????
 
 # FUNCION OBJETIVO Y RESTRICCIONES ---------------
@@ -143,7 +157,7 @@ s.t. restriccion_13{i in Ntot,k in K}: ST[i,k] >= 0;
 solve;
 
 # MOSTRAR DATOS E INFO ---------------
-printf("Nodo Origen   Nodo destino   Veh�culo   Distancia   Conexion\n");
+printf("Nodo Origen   Nodo destino   Vehículo   Distancia   Conexion\n");
 printf{i in ND, j in Nv, k in K: i!=j} "    %3d         %3d       %8g        %3d\n",   i, j, k, c[i,j], x[i,j,k];
 /*
 printf "\n\nEl recorrido optimo tiene un coste %d\n\n",
