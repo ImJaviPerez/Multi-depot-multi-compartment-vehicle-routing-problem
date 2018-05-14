@@ -2,7 +2,7 @@
 
 Nombre: md.mc.ml.mod
 Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
-Fecha: 11-04-2018
+Fecha: 14-05-2018
 version: 1.0
 
 https://gist.github.com/ImJaviPerez/
@@ -26,60 +26,27 @@ Esta sin acabar:
 3 en el segundo deposito el programa no encuentra solucion.
 ¿Ver la restriccion 10?
 
-- Hay que asignar cada vehiculo a un deposito usando el parametro DQ[r in ND, k in K].
-(no la variable u[k])
-# Quizas una mejor forma de definirlo seria:
-# param DQ{i in ND, k in K}, binary; 
-# Vale 1 si el k-esimo vehiculo esta en ese deposito y 0 en caso contrario
-# Ejemplo:
-#     Supongamos que tenemos 2 depositos y 5 vehiculos en total:
-# param : ND_x_K : DQ :=
-#        1  1   1    # Indica que en el deposito 1, el vehiculos 1; SI esta disponible.
-#        1  2   1    # Indica que en el deposito 1, el vehiculos 2; SI esta disponible.
-#        1  3   0    # Indica que en el deposito 1, el vehiculos 3; NO esta disponible.
-#        1  4   0    # Indica que en el deposito 1, el vehiculos 4; NO esta disponible.
-#        1  5   0    # Indica que en el deposito 1, el vehiculos 5 NO esta disponible.
-#        2  1   0    # Indica que en el deposito 2, el vehiculos 1; NO esta disponible.
-#        2  2   0    # Indica que en el deposito 2, el vehiculos 2; NO esta disponible.
-#        2  3   1    # Indica que en el deposito 2 el vehiculos 3 SI esta disponible.
-#        2  4   1    # Indica que en el deposito 2, el vehiculos 4; SI esta disponible.
-#        2  5   1    # Indica que en el deposito 2, el vehiculos 5; SI esta disponible.
-O sea que en el deposito 1 tendriamos 2 vehiculos y en el deposito 3 tendriamos 3 vehiculos.
-y crear una restriccion del estilo:
-s.t. restriccion_10_u{r in ND}: sum{k in K} u[k] <= sum{k in K} DQ[r,k];
-
-- Esto anterior implica que hay que limitar u[k] con DQ[i,k] en todas las restricciones.
-- No es necesario modificar el parametro fk (gasto fijo por vehiculo) ni la variable u[k].
-
-- Eso implica una nueva restriccion que relacione el vehiculo u[k] con x[i,j,k] y con la 
-distancia c[i,j] (para i in ND). O sea, cuando el vehiculo sale de su deposito, 
-la distancia inicial se mide desde ese deposito.
 */
 
 # DECLARACION DE VARIABLES ---------------
-# numero de nodos
-## param num_nodos, integer, >= 2;
+# numero total de nodos = num_depositos + num_clientes
 param num_depositos, integer, >= 1;
 param num_clientes, integer, >= 1;
+
 param num_productos, integer, >= 1; 
 param num_vehiculos, integer, >= 1;
 
 
 # CONJUNTOS basicos ----------------------
 # ND el conjunto de depositos
-set ND := 1..num_depositos; ####(num_clientes+1)..num_nodos;
+set ND := 1..num_depositos;
 # Nv el conjunto de clientes
-# Set ND := 1..1
 set Nv := (num_depositos+1)..(num_depositos+num_clientes); ####num_clientes;
-#### set Nv := 2..4;
 
-# Ntot el conjunto de todos los nodos ###; denotado por los indices i y j
+# Ntot el conjunto de todos los nodos denotado por los indices i y j
 # O sea ND y Nv son subconjuntos disjuntos de Ntot
 set Ntot := ND union Nv;
 # set Ntot := 1..num_nodos;
-
-
-
 
 
 # G el conjunto de productos; denotado por el indice g
@@ -106,23 +73,15 @@ param Q{g in G};
 ## # DQ_i el numero maximo de vehiculos que salen del deposito i
 ## param DQ{i in ND};
 # DQ_ik la lista de vehiculos k que salen del deposito i
-param DQ{i in ND, k in K}, binary; 
-# Quizas una mejor forma de definirlo seria:
-# param DQ{i in ND, k in K}, binary; 
+param DQ{nd in ND, k in K}, binary; 
 # Vale 1 si el k-esimo vehiculo esta en ese deposito y 0 en caso contrario
 # Ejemplo:
 #     Supongamos que tenemos 2 depositos y 5 posibles vehiculos por deposito:
 # param : ND_x_K : DQ :=
 #        1  1   1    # Indica que en el deposito 1, el vehiculos 1; SI esta disponible.
 #        1  2   0    # Indica que en el deposito 1, el vehiculos 2; NO esta disponible.
-#        1  3   1    # Indica que en el deposito 1, el vehiculos 3; SI esta disponible.
-#        1  4   0    # Indica que en el deposito 1, el vehiculos 4; NO esta disponible.
-#        1  5   0    # Indica que en el deposito 1, el vehiculos 5 NO esta disponible.
-#        2  1   1    # Indica que en el deposito 2, el vehiculos 1; SI esta disponible.
+#        2  1   0    # Indica que en el deposito 2, el vehiculos 1; NO esta disponible.
 #        2  2   1    # Indica que en el deposito 2, el vehiculos 2; SI esta disponible.
-#        2  3   1    # Indica que en el deposito 2 el vehiculos 3 SI esta disponible.
-#        2  4   1    # Indica que en el deposito 2, el vehiculos 4; SI esta disponible.
-#        2  5   0    # Indica que en el deposito 2, el vehiculos 5; NO esta disponible.
 
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
@@ -153,13 +112,9 @@ var y{i in Nv, g in G, k in K}, binary;
 var u{k in K}, binary;
 
 # ST_ik se usa para la eliminacion de sub-tours
-# ############### ¿ES ENTERO???????????????????????
+# Segun la restriccion 14, ST >= 0 
 var ST{i in Ntot, k in K}, integer;
 
-
-########## EN LAS RESTRICCIONES 
-######### ¿NO HAY QUE PONER UNA RESTRICCION DEL TIPO 
-######### "i != j" PARA EVITAR QUE SE VAYA DE UN NODO AL MISMO NODO????????????
 
 # FUNCION OBJETIVO Y RESTRICCIONES ---------------
 # Eq. (1 ) is the objective function, which includes two sections,
@@ -176,7 +131,7 @@ minimize zObjetivo_1: sum{i in Ntot, j in Ntot, k in K: i!= j} c[i,j] * x[i,j,k]
 # also indicates that each vehicle can ultimately leave the depot only
 # once.
 ## s.t. restriccion_2{k in K} : sum{i in ND, j in Nv} x[i,j,k] <= u[k];
-s.t. restriccion_2{k in K} : sum{i in ND, j in Nv} x[i,j,k] * DQ[i,k]<= u[k];
+s.t. restriccion_2{k in K, nd in ND} : sum{j in Nv} x[nd,j,k] <= u[k] * DQ[nd,k];
 
 # Restriccion 3:
 # Constraint ( 3 ) states that each customer’s demand for a given
@@ -192,8 +147,7 @@ s.t. restriccion_4{i in Nv, k in K}: sum{g in G} y[i,g,k] <= (M * sum{j in Ntot:
 s.t. restriccion_5{k in K, i in Nv}: sum{j in Ntot: i!= j} x[j,i,k] <=  sum{g in G} y[i,g,k];
 
 # Restriccion 6:
-# Constraint ( 6 ) ensures that each vehicle visits any given customer at
-# most once.
+# Constraint ( 6 ) ensures that each vehicle visits any given customer at most once.
 s.t. restriccion_6{j in Nv, k in K}: sum{i in Ntot: i!= j} x[i,j,k] <= 1;
 
 # Restriccion 7:
@@ -202,8 +156,7 @@ s.t. restriccion_6{j in Nv, k in K}: sum{i in Ntot: i!= j} x[i,j,k] <= 1;
 s.t. restriccion_7{j in Ntot, k in K}: sum{i in Ntot: i!= j} x[i,j,k] = sum{i in Ntot: i!= j} x[j,i,k];
 
 # Restriccion 8:
-# Constraint ( 8 ) limits the capacity
-# of vehicles
+# Constraint ( 8 ) limits the capacity of vehicles
 s.t. restriccion_8{g in G, k in K}: sum{i in Nv} y[i,g,k] * d[i,g] <= Q[g];
 
 # Restriccion 9:
@@ -213,9 +166,7 @@ s.t. restriccion_9{k in K}: sum{i in Ntot, j in Ntot: i!= j} c[i,j] * x[i,j,k] <
 # Restriccion 10:
 # Constraint ( 10 ) is related to the capacity of depots.
 ## ORIGINAL s.t. restriccion_10{i in ND}: sum{k in K, j in Nv} x[i,j,k] <= DQ[i];
-#s.t. restriccion_10{i in ND}: sum{k in K, j in Nv} x[i,j,k] <= sum{k in K} DQ[i,k];
-### s.t. restriccion_10_x{i in ND, j in Nv}: sum{k in K} x[i,j,k] <= DQ[i];
-s.t. restriccion_10_u{i in ND}: sum{k in K} u[k] * DQ[i,k] <= sum{k in K} DQ[i,k];
+s.t. restriccion_10{i in ND}: sum{k in K, j in Nv} x[i,j,k] <= sum{k in K} DQ[i,k];
 
 # Restriccion 11:
 # Constraints ( 11 )
@@ -224,30 +175,6 @@ s.t. restriccion_11: sum{i in ND, k in K} ST[i,k] = 0;
 
 # Restriccion 12:
 s.t. restriccion_12{i in Ntot, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1 - x[i,j,k]);
-
-# Restriccion 14:
-# And constraints ( 13 ) and ( 14 ) define the domains of decision variables.
-s.t. restriccion_13{i in Ntot,k in K}: ST[i,k] >= 0;
-
-
-######################################
-######################################
-
-# Restriccion para vehiculos: Se deben usar los vehiculos indicados por x[i,j.k]
-### s.t. restriccion_vehiculos{k in K, i in Ntot, j in Ntot: i!= j}: u[k] >= x[i,j,k];
-s.t. restriccion_vehiculos{v in Nv, g in G, k in K}: u[k] >= y[v,g,k];
-
-#Restriccion para obligar a que si un vehiculo sale de un deposito, entonces x[i,j,k] debe ser 1
-### s.t. restriccion_Depot2 : sum{i in ND, j in Nv, k in K} x[i,j,k] >= sum{k in K} u[k];
-## s.t. restriccion_Depot2 {k in K} : sum{i in ND, j in Nv} x[i,j,k] >= u[k];
-
-s.t. restriccion_Depot2 {k in K} : sum{i in ND, j in Nv} x[i,j,k] * DQ[i,k] >= u[k];
-
-# s.t. restriccion_5bis{k in K, i in Nv, g in G}: sum{j in Ntot: i!= j} x[j,i,k] >= y[i,g,k];
-
-######################################
-######################################
-
 
 
 # RESOLUCION 
@@ -303,10 +230,16 @@ printf ("\n--------------------------------------------------");
 
 printf ("\n\n--------------------------------------------------");
 printf ("\n--------------------------------------------------");
+
+printf "\n\nResultado de la funcion objetivo: = %d",   sum{i in Ntot, j in Ntot, k in K: i!=j} c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
+printf ("\n--------------------------------------------------");
+
+printf "\n\nLa distancia maxima permitida para un vehiculo es = %d", MC;
+
 printf "\n\nEl camino optimo recorre una distancia = %d",   sum{i in Ntot, j in Ntot, k in K: i!=j} c[i,j] * x[i,j,k];
 printf "\n\nLa distancia maxima recorrida por un vehiculo es = %d", MC;
 
-printf("\n\nEl recorrido de cada vehiculo es:\n Num.Vehíc.K  Distan.C\n");
+printf("\n\nLa distancia recorrida por cada vehiculo es:\n Num.Vehíc.K  Distan.C\n");
 # printf{k in K:  u[k] == 1} "  %3d    \t   %6d\n", k, sum{i in Ntot, j in Ntot : i!=j} (c[i,j] * x[i,j,k]);
 printf{k in K} "  %3d    \t   %6d\n", k, sum{i in Ntot, j in Ntot : i!=j} (c[i,j] * x[i,j,k]);
 
@@ -316,44 +249,44 @@ printf{k in K, i in Ntot, j in Ntot :  x[i,j,k] == 1} "  %3d    \t %3d  \t %3d \
 printf ("\n--------------------------------------------------");
 printf "\n\nEl recorrido optimo tiene un coste fijo %d",   sum{k in K} fk[k] * u[k];
 
-printf("\n\nVehíc.K  Coste.fijo.fk = \n");
+printf("\n\nVehíc.K  Coste.fijo.fk\n");
 printf{k in K : u[k] == 1} "  %3d  \t  %6d\n", k, fk[k];
 
 /*
 printf ("\n--------------------------------------------------");
 # printf("\n\nVehíc.K  Nd.Orig.I Nd.Dest.J  Produc.G   Cantida.D\n");
-# printf{k in K, i in Ntot, j in Ntot, v in Nv, g in G : x[i,j,k] == 1 && i!=j && u[k] == 1} "  %3d \t %3d    \t %3d   \t %3d   \t %6d\n", k, i, j, g, d[j,g];
+# printf{k in K, i in Ntot, j in Ntot, nv in Nv, g in G : x[i,j,k] == 1 && i!=j && u[k] == 1} "  %3d \t %3d    \t %3d   \t %3d   \t %6d\n", k, i, j, g, d[j,g];
 printf("\n\nNd.I \t Nd.V \t Vehic.K \t x_ijk \t u_k \t y_igk\n");
-printf{i in Ntot, v in Nv, k in K, g in G : i!=v} "  %3d \t %3d \t %3d \t %3d \t %3d \t %3d\n", i, v, k, x[i,v,k], u[k], y[v,g,k];
+printf{i in Ntot, nv in Nv, k in K, g in G : i!=nv} "  %3d \t %3d \t %3d \t %3d \t %3d \t %3d\n", i, nv, k, x[i,nv,k], u[k], y[nv,g,k];
 */
 
 
 /*
 printf ("\n--------------------------------------------------");
 printf("\n\nSub-tours:\nVehíc.K  Nd.Orig.I  ST_ik  \n");
-printf{k in K, i in Ntot} "  %3d \t %3d \t %6d\n", k, i, ST[i,k];
+printf{i in Ntot, k in K : ST[i,k] != 0} "  %3d \t %3d \t %6d\n", k, i, ST[i,k];
 */
 
 /*
-printf ("\n--------------------------------------------------");
-printf("\n\nNd.Dest.V \t Prod.G \t Vehíc.K \t u_k \t Y_igk \n");
-printf{v in Nv, g in G, k in K } "  %3d \t %3d \t %3d \t %3d \t %3d\n", v, g, k, u[k], y[v,g,k];
-*/
 printf ("\n--------------------------------------------------");
 printf("\n\nNd.Orig.I \t Nd.Dest.J \t Vehíc.K \t u_k \t X_ijk \n");
 printf{k in K , i in Ntot, j in Ntot: i != j && x[i,j,k] == 1} "  %3d \t %3d \t %3d \t %3d \t %3d\n", i, j, k, u[k], x[i,j,k];
-
+*/
 
 printf ("\n--------------------------------------------------");
 printf("\n\nNum salidas de un deposito:");
-printf("\nNum.Depos.D \t Num.Salidas. \t Salidas.Max.DQ\n");
+printf("\nNum.Depos.D \t Num.Salidas. \t Salidas.Max.Permitidas.DQ\n");
 printf{i in ND} "  %3d \t %6d \t %6d\n", i, sum{k in K, j in Nv} x[i,j,k], sum{k in K} DQ[i,k];
 
+printf("\n\nNum.Depos.D \t Num.Vehic.K \t Num.Salidas.\n");
+printf{i in ND, k in K} "  %3d \t %3d \t %6d\n", i, k, sum{j in Nv} x[i,j,k];
 
-/*
-printf("\n\nEl recorrido de nodo a nodo es:\nVehic.K   Nd.Orig.I  Nd.Dest.J   X.ijk  \n");
-printf{k in K, i in Ntot, j in Ntot} "  %3d \t %3d \t %3d \t %3d\n", k, i, j, x[i,j,k];
-*/
+
+printf ("\n--------------------------------------------------");
+printf("\n\nReparto de productos a cada cliente:");
+printf("\n\nNd.Dest.V \t Vehíc.K \t Prod.G \t Cantidad.d_vg \t y_vgk\n");
+printf{k in K, nv in Nv, g in G : y[nv,g,k] ==1 && d[nv,g] > 0 } "  %3d \t %3d \t %3d \t %3d \t %3d\n", nv, k, g, d[nv,g], y[nv,g,k];
+
 
 
 # DATOS USADOS EN ESTE PROBLEMA ---------------

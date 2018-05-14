@@ -2,192 +2,182 @@
 # num_depositos = num_nodos - num_clientes ND
 param num_depositos := 4;
 # num_clientes = num_nodos - num_depositos, Nv
-param num_clientes := 3;
+param num_clientes := 6;
 # G
-param num_productos := 5;
+param num_productos := 3;
 # K
-param num_vehiculos := 15;
+param num_vehiculos := 4;
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
-param MC := 250;
+param MC := 400;
 
-# M un numero muy grande
-param M := 1e20;
+# M un numero muy grande.
+# En realidad basta con el numero de arcos + 1. (4 + 6)^2 + 1.
+# Pero lo pongo un poco mas grande.
+param M := 121;
 
 #c_ij la distancia entre los nodos i y j
 param : Ntot_x_Ntot : c :=
     1  1  0
-    1  2  16
-    1  3  17
-    1  4  13
-    1  5  14
-    1  6  2
-    1  7  14
-    2  1  16
+    1  2  148
+    1  3  323
+    1  4  428
+    1  5  161
+    1  6  291
+    1  7  219
+    1  8  374
+    1  9  50
+    1  10  496
+    2  1  148
     2  2  0
-    2  3  2
-    2  4  15
-    2  5  17
-    2  6  2
-    2  7  11
-    3  1  17
-    3  2  2
+    2  3  369
+    2  4  6
+    2  5  197
+    2  6  404
+    2  7  430
+    2  8  220
+    2  9  426
+    2  10  197
+    3  1  323
+    3  2  369
     3  3  0
-    3  4  3
-    3  5  2
-    3  6  16
-    3  7  22
-    4  1  13
-    4  2  15
-    4  3  3
+    3  4  435
+    3  5  165
+    3  6  158
+    3  7  387
+    3  8  108
+    3  9  489
+    3  10  2
+    4  1  428
+    4  2  6
+    4  3  435
     4  4  0
-    4  5  2
-    4  6  22
-    4  7  18
-    5  1  14
-    5  2  17
-    5  3  2
-    5  4  2
+    4  5  342
+    4  6  272
+    4  7  198
+    4  8  222
+    4  9  458
+    4  10  255
+    5  1  161
+    5  2  197
+    5  3  165
+    5  4  342
     5  5  0
-    5  6  22
-    5  7  23
-    6  1  2
-    6  2  2
-    6  3  16
-    6  4  22
-    6  5  22
+    5  6  144
+    5  7  64
+    5  8  484
+    5  9  56
+    5  10  439
+    6  1  291
+    6  2  404
+    6  3  158
+    6  4  272
+    6  5  144
     6  6  0
-    6  7  2
-    7  1  14
-    7  2  2
-    7  3  22
-    7  4  14
-    7  5  23
-    7  6  2
+    6  7  285
+    6  8  294
+    6  9  19
+    6  10  238
+    7  1  219
+    7  2  430
+    7  3  387
+    7  4  198
+    7  5  64
+    7  6  285
     7  7  0
+    7  8  21
+    7  9  475
+    7  10  482
+    8  1  374
+    8  2  220
+    8  3  108
+    8  4  222
+    8  5  484
+    8  6  294
+    8  7  21
+    8  8  0
+    8  9  270
+    8  10  386
+    9  1  50
+    9  2  426
+    9  3  489
+    9  4  458
+    9  5  56
+    9  6  19
+    9  7  475
+    9  8  270
+    9  9  0
+    9  10  283
+    10  1  496
+    10  2  197
+    10  3  2
+    10  4  255
+    10  5  439
+    10  6  238
+    10  7  482
+    10  8  386
+    10  9  283
+    10  10  0
 ;
 
 #d_ig demanda del nodo i para el producto g
 param : Nv_x_G : d :=
     5  1  0
-    5  2  20
-    5  3  9
-    5  4  17
-    5  5  5
+    5  2  27
+    5  3  13
     6  1  0
-    6  2  28
-    6  3  49
-    6  4  1
-    6  5  0
-    7  1  0
-    7  2  0
-    7  3  38
-    7  4  13
-    7  5  18
+    6  2  16
+    6  3  10
+    7  1  18
+    7  2  26
+    7  3  0
+    8  1  14
+    8  2  6
+    8  3  0
+    9  1  0
+    9  2  0
+    9  3  38
+    10  1  0
+    10  2  21
+    10  3  28
 ;
 
 #Q_g la capacidad del compartimento del vehiculo dedicado al producto g
 # param Q{i in G} :=
 # param : G : Q :=
 param Q :=
-    1  47
-    2  194
-    3  83
-    4  157
-    5  140
+    1  122
+    2  131
+    3  113
 ;
 
 ## DQ_ik la lista de vehiculos k que salen del deposito i
-#       1  1   1    # Indica que en el deposito 1, el vehiculos 1; SI esta disponible.
-#       1  2   0    # Indica que en el deposito 1, el vehiculos 2; NO esta disponible.
-#       1  3   1    # Indica que en el deposito 1, el vehiculos 3; SI esta disponible.
-#       1  4   0    # Indica que en el deposito 1, el vehiculos 4; NO esta disponible.
-#       1  5   0    # Indica que en el deposito 1, el vehiculos 5 NO esta disponible.
-#       2  1   0    # Indica que en el deposito 2, el vehiculos 1; NO esta disponible.
-#       2  2   1    # Indica que en el deposito 2, el vehiculos 2; SI esta disponible.
-#       2  3   0    # Indica que en el deposito 2 el vehiculos 3; NO esta disponible.
-#       2  4   1    # Indica que en el deposito 2, el vehiculos 4; SI esta disponible.
-#       2  5   1    # Indica que en el deposito 2, el vehiculos 5; SI esta disponible.
 param : ND_x_K : DQ :=
     1  1  1    # Indica que en el deposito 1 SI esta disponible vehiculo 1
     1  2  0    # Indica que en el deposito 1 NO esta disponible vehiculo 2
     1  3  0    # Indica que en el deposito 1 NO esta disponible vehiculo 3
     1  4  0    # Indica que en el deposito 1 NO esta disponible vehiculo 4
-    1  5  0    # Indica que en el deposito 1 NO esta disponible vehiculo 5
-    1  6  0    # Indica que en el deposito 1 NO esta disponible vehiculo 6
-    1  7  0    # Indica que en el deposito 1 NO esta disponible vehiculo 7
-    1  8  0    # Indica que en el deposito 1 NO esta disponible vehiculo 8
-    1  9  0    # Indica que en el deposito 1 NO esta disponible vehiculo 9
-    1  10  0    # Indica que en el deposito 1 NO esta disponible vehiculo 10
-    1  11  0    # Indica que en el deposito 1 NO esta disponible vehiculo 11
-    1  12  0    # Indica que en el deposito 1 NO esta disponible vehiculo 12
-    1  13  0    # Indica que en el deposito 1 NO esta disponible vehiculo 13
-    1  14  0    # Indica que en el deposito 1 NO esta disponible vehiculo 14
-    1  15  0    # Indica que en el deposito 1 NO esta disponible vehiculo 15
     2  1  0    # Indica que en el deposito 2 NO esta disponible vehiculo 1
     2  2  1    # Indica que en el deposito 2 SI esta disponible vehiculo 2
-    2  3  1    # Indica que en el deposito 2 SI esta disponible vehiculo 3
-    2  4  1    # Indica que en el deposito 2 SI esta disponible vehiculo 4
-    2  5  0    # Indica que en el deposito 2 NO esta disponible vehiculo 5
-    2  6  0    # Indica que en el deposito 2 NO esta disponible vehiculo 6
-    2  7  0    # Indica que en el deposito 2 NO esta disponible vehiculo 7
-    2  8  0    # Indica que en el deposito 2 NO esta disponible vehiculo 8
-    2  9  0    # Indica que en el deposito 2 NO esta disponible vehiculo 9
-    2  10  0    # Indica que en el deposito 2 NO esta disponible vehiculo 10
-    2  11  0    # Indica que en el deposito 2 NO esta disponible vehiculo 11
-    2  12  0    # Indica que en el deposito 2 NO esta disponible vehiculo 12
-    2  13  0    # Indica que en el deposito 2 NO esta disponible vehiculo 13
-    2  14  0    # Indica que en el deposito 2 NO esta disponible vehiculo 14
-    2  15  0    # Indica que en el deposito 2 NO esta disponible vehiculo 15
+    2  3  0    # Indica que en el deposito 2 NO esta disponible vehiculo 3
+    2  4  0    # Indica que en el deposito 2 NO esta disponible vehiculo 4
     3  1  0    # Indica que en el deposito 3 NO esta disponible vehiculo 1
     3  2  0    # Indica que en el deposito 3 NO esta disponible vehiculo 2
-    3  3  0    # Indica que en el deposito 3 NO esta disponible vehiculo 3
+    3  3  1    # Indica que en el deposito 3 SI esta disponible vehiculo 3
     3  4  0    # Indica que en el deposito 3 NO esta disponible vehiculo 4
-    3  5  1    # Indica que en el deposito 3 SI esta disponible vehiculo 5
-    3  6  1    # Indica que en el deposito 3 SI esta disponible vehiculo 6
-    3  7  1    # Indica que en el deposito 3 SI esta disponible vehiculo 7
-    3  8  0    # Indica que en el deposito 3 NO esta disponible vehiculo 8
-    3  9  0    # Indica que en el deposito 3 NO esta disponible vehiculo 9
-    3  10  0    # Indica que en el deposito 3 NO esta disponible vehiculo 10
-    3  11  0    # Indica que en el deposito 3 NO esta disponible vehiculo 11
-    3  12  0    # Indica que en el deposito 3 NO esta disponible vehiculo 12
-    3  13  0    # Indica que en el deposito 3 NO esta disponible vehiculo 13
-    3  14  0    # Indica que en el deposito 3 NO esta disponible vehiculo 14
-    3  15  0    # Indica que en el deposito 3 NO esta disponible vehiculo 15
     4  1  0    # Indica que en el deposito 4 NO esta disponible vehiculo 1
     4  2  0    # Indica que en el deposito 4 NO esta disponible vehiculo 2
     4  3  0    # Indica que en el deposito 4 NO esta disponible vehiculo 3
-    4  4  0    # Indica que en el deposito 4 NO esta disponible vehiculo 4
-    4  5  0    # Indica que en el deposito 4 NO esta disponible vehiculo 5
-    4  6  0    # Indica que en el deposito 4 NO esta disponible vehiculo 6
-    4  7  0    # Indica que en el deposito 4 NO esta disponible vehiculo 7
-    4  8  1    # Indica que en el deposito 4 SI esta disponible vehiculo 8
-    4  9  1    # Indica que en el deposito 4 SI esta disponible vehiculo 9
-    4  10  1    # Indica que en el deposito 4 SI esta disponible vehiculo 10
-    4  11  1    # Indica que en el deposito 4 SI esta disponible vehiculo 11
-    4  12  1    # Indica que en el deposito 4 SI esta disponible vehiculo 12
-    4  13  1    # Indica que en el deposito 4 SI esta disponible vehiculo 13
-    4  14  1    # Indica que en el deposito 4 SI esta disponible vehiculo 14
-    4  15  1    # Indica que en el deposito 4 SI esta disponible vehiculo 15
+    4  4  1    # Indica que en el deposito 4 SI esta disponible vehiculo 4
 ;
 
 # fk el costo fijo de usar el vehiculo k
 # param : K : fk :=
 param fk :=
-    1  80
-    2  2
-    3  68
-    4  11
-    5  25
-    6  69
-    7  26
-    8  29
-    9  60
-    10  21
-    11  34
-    12  10
-    13  39
-    14  8
-    15  22
+    1  22
+    2  25
+    3  21
+    4  21
 ;
 end;
+
