@@ -21,10 +21,6 @@ Este programa fuciona con un fichero externo de datos.
 - En Gusek se debe habilitar la opcion: "Tools > Enable use of external data files"
 
 TO-DO:
-Esta sin acabar:
-- No se usan los dos depositos si ponemos 1 solo vehiculo en el deposito 1 y 
-3 en el segundo deposito el programa no encuentra solucion.
-¿Ver la restriccion 10?
 
 */
 
