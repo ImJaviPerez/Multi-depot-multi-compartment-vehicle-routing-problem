@@ -2,7 +2,7 @@
 
 Nombre: md.mc.ml.mod
 Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
-Fecha: 14-05-2018
+Fecha: 11-04-2018
 version: 1.0
 
 https://gist.github.com/ImJaviPerez/
@@ -275,13 +275,17 @@ printf("\nNum.Depos.D \t Num.Salidas. \t Salidas.Max.Permitidas.DQ\n");
 printf{i in ND} "  %3d \t %6d \t %6d\n", i, sum{k in K, j in Nv} x[i,j,k], sum{k in K} DQ[i,k];
 
 printf("\n\nNum.Depos.D \t Num.Vehic.K \t Num.Salidas.\n");
-printf{i in ND, k in K} "  %3d \t %3d \t %6d\n", i, k, sum{j in Nv} x[i,j,k];
-
+printf{i in ND, k in K : DQ[i,k] == 1} "  %3d \t %3d \t %6d\n", i, k, sum{j in Nv} x[i,j,k];
 
 printf ("\n--------------------------------------------------");
 printf("\n\nReparto de productos a cada cliente:");
-printf("\n\nNd.Dest.V \t Vehíc.K \t Prod.G \t Cantidad.d_vg \t y_vgk\n");
+printf("\n\nNd.Dest.V \t Vehíc.K \t Prod.G \t Cantidad.d_ig \t y_vgk\n");
 printf{k in K, nv in Nv, g in G : y[nv,g,k] ==1 && d[nv,g] > 0 } "  %3d \t %3d \t %3d \t %3d \t %3d\n", nv, k, g, d[nv,g], y[nv,g,k];
+
+printf ("\n--------------------------------------------------");
+printf("\n\nNumero de articulos transportados por un vehiculo:");
+printf("\n\nVehíc.K \t Prod.G \t Cantidad.Total.d_vg \t Cant.Max.Permitida\n");
+printf{k in K, g in G : u[k] == 1} "  %3d \t %3d \t %6d \t %6d\n", k, g, sum{j in Nv : y[j,g,k] == 1} d[j,g] * y[j,g,k], Q[g];
 
 
 
