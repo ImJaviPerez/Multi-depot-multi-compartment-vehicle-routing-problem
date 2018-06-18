@@ -5,24 +5,24 @@ import numpy as np
 
 
 num_depositos = 3
-num_clientes = 6
-num_productos = 5
+num_clientes = 8
+num_productos = 4
 # num_vehiculos debe ser mayor o igual que num_depositos
-num_vehiculos = 3
+num_vehiculos = 5
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
-MC = 1500
+MC = 800
 
 
-
-distanc_max_entre_nodos = MC//2
+distanc_min_entre_nodos = 1  # MC//100 #1
+distanc_max_entre_nodos = MC*(num_depositos/num_clientes)//5
 
 min_fk_coste_fijo_vehic = MC//60
 max_fk_coste_fijo_vehic = MC//50
 
 max_demanda_por_producto = 50
 min_size_compartimento = max_demanda_por_producto * 2
-max_size_compartimento = max_demanda_por_producto * 3
+max_size_compartimento = max_demanda_por_producto * 4
 
 
 # ----------- Fin de la parametrizacion -----------
@@ -68,7 +68,8 @@ strAux = ('\nparam MC := ' + str(MC) + ';')
 file.write(strAux)
 
 strAux = ('\n\n# M un numero muy grande.' +
-          '\n# En realidad basta con el (numero de arcos + 1) = (' + 
+          '\n# En realidad basta con el (numero de arcos + 1) = \n' + 
+          '# (num_depositos + num_clientes - 1)^2 + 1 = (' + 
           str(num_depositos) + ' + '+ str(num_clientes) + ' - 1)^2 + 1.' + 
           '\n# Pero lo pongo un poco mas grande = (' +
           str(num_depositos) + ' + '+ str(num_clientes) + ' + 1)^2.')
@@ -89,7 +90,7 @@ for i in range(1, nodos_tot+1):
         if i == j:
             distancia_aux[i,j] = 0
         elif i < j:
-            distancia_aux[i,j] = random.randint(1, distanc_max_entre_nodos)
+            distancia_aux[i,j] = random.randint(distanc_min_entre_nodos, distanc_max_entre_nodos)
         else:
             distancia_aux[i,j] = distancia_aux[j, i]
             
