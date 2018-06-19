@@ -3,9 +3,15 @@
 Nombre: md.mc.ml.mod
 Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
 Fecha: 11-04-2018
-version: 1.0
+version: 1.1
 
 https://gist.github.com/ImJaviPerez/
+
+
+Este programa fuciona con un fichero externo de datos.
+- Debe tener el mismo nombre que este programa con la extension ".dat"
+- En Gusek se debe habilitar la opcion: "Tools > Enable use of external data files"
+
 
 Descripcion:
 Este programa esta basado en un articulo de 
@@ -16,9 +22,6 @@ https://www.sciencedirect.com/science/article/pii/S0305048316303553
 https://ideas.repec.org/a/eee/jomega/v76y2018icp85-99.html
 
 
-Este programa fuciona con un fichero externo de datos.
-- Debe tener el mismo nombre que este programa con la extension ".dat"
-- En Gusek se debe habilitar la opcion: "Tools > Enable use of external data files"
 
 TO-DO:
 
@@ -37,7 +40,7 @@ param num_vehiculos, integer, >= 1;
 # ND el conjunto de depositos
 set ND := 1..num_depositos;
 # Nv el conjunto de clientes
-set Nv := (num_depositos+1)..(num_depositos+num_clientes); ####num_clientes;
+set Nv := (num_depositos+1)..(num_depositos+num_clientes);
 
 # Ntot el conjunto de todos los nodos denotado por los indices i y j
 # O sea ND y Nv son subconjuntos disjuntos de Ntot
@@ -61,9 +64,9 @@ param d{i in Nv, g in G};
 param c{i in Ntot, j in Ntot};
 
 # Q_g la capacidad del compartimento del vehiculo dedicado al producto g
-## K_x_G = conjunto vehiculos por producto
-# #### ¿SOLO DEPENDE DEL PRODUCTO?¿NO DEPENDE DEL VEHICULO?
-############### g o (k, g) ????????????????????????????????
+# Solo depende del producto, no depende del vehiculo.
+# Seria interesante qu dependiera del producto y del vehiculo: K_x_G = conjunto vehiculos por producto
+# param Q{g in G, k in K}
 param Q{g in G};
 
 ## # DQ_i el numero maximo de vehiculos que salen del deposito i
@@ -72,12 +75,14 @@ param Q{g in G};
 param DQ{nd in ND, k in K}, binary; 
 # Vale 1 si el k-esimo vehiculo esta en ese deposito y 0 en caso contrario
 # Ejemplo:
-#     Supongamos que tenemos 2 depositos y 5 posibles vehiculos por deposito:
+#     Supongamos que tenemos 2 depositos y 3 posibles vehiculos por deposito:
 # param : ND_x_K : DQ :=
 #        1  1   1    # Indica que en el deposito 1, el vehiculos 1; SI esta disponible.
 #        1  2   0    # Indica que en el deposito 1, el vehiculos 2; NO esta disponible.
+#        1  3   1    # Indica que en el deposito 1, el vehiculos 3; SI esta disponible.
 #        2  1   0    # Indica que en el deposito 2, el vehiculos 1; NO esta disponible.
 #        2  2   1    # Indica que en el deposito 2, el vehiculos 2; SI esta disponible.
+#        2  3   1    # Indica que en el deposito 3, el vehiculos 2; NO esta disponible.
 
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
@@ -94,13 +99,15 @@ param M, integer, >= 1;
 
 # VARIABLES DE DECISION
 # x_ijk equivalen a 1 si la ruta entre los nodos i y j es recorrida por el vehiculo k, y es cero; en caso contrario
-# Segun la restriccion 14, x_ijk es binaria
+# Segun la restriccion 13, x_ijk es binaria
+# x_ijk , y_igk in { 0 , 1 } , para todo i, j in N_tot , k in K, g in G (13)
 # var x{i in Ntot, j in Ntot, k in K}, binary;
 # var x{i in ND, j in Nv, k in K}, binary;
 var x{i in Ntot, j in Ntot, k in K}, binary;
 
 # y_igk igual a 1 si la demanda del nodo i para el producto g es entregada por el vehiculo k;es cero, de lo contrario
-# Segun la restriccion 14, y_igk es binaria
+# Segun la restriccion 13, y_igk es binaria
+# x_ijk , y_igk in { 0 , 1 } , para todo i, j in N_tot , k in K, g in G (13)
 ##### var y{i in Ntot, g in G, k in K}, binary;
 var y{i in Nv, g in G, k in K}, binary;
 
@@ -109,7 +116,8 @@ var u{k in K}, binary;
 
 # ST_ik se usa para la eliminacion de sub-tours
 # Segun la restriccion 14, ST >= 0 
-var ST{i in Ntot, k in K}, integer;
+# ST_ik >=0 , para todo i in N_tot , k in K. (14)
+var ST{i in Ntot, k in K}, integer, >= 0;
 
 
 # FUNCION OBJETIVO Y RESTRICCIONES ---------------
@@ -118,7 +126,7 @@ var ST{i in Ntot, k in K}, integer;
 # and the second section is related to the fixed cost for using
 # the vehicles.
 # La funcion objetivo minimiza el costo (longitud) del camino recorrido
-minimize zObjetivo_1: sum{i in Ntot, j in Ntot, k in K: i!= j} c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
+minimize zObjetivo_1: sum{i in Ntot, j in Ntot, k in K} c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
 
 
 # Restriccion 2:
@@ -137,19 +145,21 @@ s.t. restriccion_3{i in Nv, g in G}: sum{k in K} y[i,g,k] = 1;
 # Restriccion 4:
 # Constraints ( 4 ) and ( 5 ) state that the demand of customer i for products g can be fulfilled
 # by vehicle k only when this vehicle visits customer i .
-s.t. restriccion_4{i in Nv, k in K}: sum{g in G} y[i,g,k] <= (M * sum{j in Ntot: i!= j} x[j,i,k]);
+s.t. restriccion_4{i in Nv, k in K}: sum{g in G} y[i,g,k] <= (M * sum{j in Ntot} x[j,i,k]);
+############## s.t. restriccion_4{i in Nv, k in K}: sum{g in G} y[i,g,k] <= (M * sum{j in Ntot: i!=j} x[j,i,k]);
 
 # Restriccion 5:
-s.t. restriccion_5{k in K, i in Nv}: sum{j in Ntot: i!= j} x[j,i,k] <=  sum{g in G} y[i,g,k];
+s.t. restriccion_5{k in K, i in Nv}: sum{j in Ntot} x[j,i,k] <=  sum{g in G} y[i,g,k];
 
 # Restriccion 6:
 # Constraint ( 6 ) ensures that each vehicle visits any given customer at most once.
-s.t. restriccion_6{j in Nv, k in K}: sum{i in Ntot: i!= j} x[i,j,k] <= 1;
+s.t. restriccion_6{j in Nv, k in K}: sum{i in Ntot} x[i,j,k] <= 1;
 
 # Restriccion 7:
 # Constraint ( 7 ) states that any vehicle that enters a node
 # should also depart from that node.
-s.t. restriccion_7{j in Ntot, k in K}: sum{i in Ntot: i!= j} x[i,j,k] = sum{i in Ntot: i!= j} x[j,i,k];
+#### s.t. restriccion_7{j in Ntot, k in K}: sum{i in Ntot: i!=j} x[i,j,k] = sum{i in Ntot: i!=j} x[j,i,k];
+s.t. restriccion_7{j in Ntot, k in K}: sum{i in Ntot} x[i,j,k] = sum{i in Ntot: i!=j} x[j,i,k];
 
 # Restriccion 8:
 # Constraint ( 8 ) limits the capacity of vehicles
@@ -157,7 +167,7 @@ s.t. restriccion_8{g in G, k in K}: sum{i in Nv} y[i,g,k] * d[i,g] <= Q[g];
 
 # Restriccion 9:
 # constraint ( 9 ) limits the maximum distance.
-s.t. restriccion_9{k in K}: sum{i in Ntot, j in Ntot: i!= j} c[i,j] * x[i,j,k] <= MC;
+s.t. restriccion_9{k in K}: sum{i in Ntot, j in Ntot} c[i,j] * x[i,j,k] <= MC;
 
 # Restriccion 10:
 # Constraint ( 10 ) is related to the capacity of depots.
@@ -167,11 +177,15 @@ s.t. restriccion_10{i in ND}: sum{k in K, j in Nv} x[i,j,k] <= sum{k in K} DQ[i,
 # Restriccion 11:
 # Constraints ( 11 )
 # and ( 12 ) are used for elimination of sub-tours.
+## ORIGINAL s.t. restriccion_11: sum{i in ND, k in K} ST[i,k] = 0;
 s.t. restriccion_11: sum{i in ND, k in K} ST[i,k] = 0;
 
 # Restriccion 12:
 s.t. restriccion_12{i in Ntot, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1 - x[i,j,k]);
 
+
+#### s.t. restriccion_12_bis{i in ND, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1 - x[i,j,k] * DQ[i,k]);
+s.t. restriccion_12_bis{i in ND, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] * DQ[i,k] + M * (1 - x[i,j,k]);
 
 # RESOLUCION 
 solve;
