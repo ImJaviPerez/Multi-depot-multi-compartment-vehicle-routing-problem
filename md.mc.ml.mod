@@ -262,7 +262,7 @@ printf "\n\nEl gasto por recorrer esos kilometros es de = %.2f",  precio_por_km 
 printf "\n\nEl precio por km es de = %.4f", precio_por_km;
 
 printf ("\n--------------------------------------------------");
-printf "\n\nEl recorrido optimo tiene un coste fijo %d",   sum{k in K} fk[k] * u[k];
+printf "\n\nEl recorrido optimo tiene gasto fijo en los vehiculos = %d",   sum{k in K} fk[k] * u[k];
 
 printf("\n\nVehíc.K  Coste.fijo.fk\n");
 printf{k in K : u[k] == 1} "  %3d  \t  %6d\n", k, fk[k];
