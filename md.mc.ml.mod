@@ -3,14 +3,8 @@
 Nombre: md.mc.ml.mod
 Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
 Fecha: 11-04-2018
-version: 1.1
+version: 1.2.001
 
-https://gist.github.com/ImJaviPerez/
-
-
-Este programa fuciona con un fichero externo de datos.
-- Debe tener el mismo nombre que este programa con la extension ".dat"
-- En Gusek se debe habilitar la opcion: "Tools > Enable use of external data files"
 
 
 Descripcion:
@@ -21,9 +15,23 @@ Omega, Elsevier, vol. 76(C), pages 85-99.
 https://www.sciencedirect.com/science/article/pii/S0305048316303553
 https://ideas.repec.org/a/eee/jomega/v76y2018icp85-99.html
 
+######################################
+######################################
+IMPORTANTE!!!
 
+Este programa fuciona con un fichero externo de datos.
+- Debe tener el mismo nombre que este programa con la extension ".dat"
+- En Gusek se debe habilitar la opcion: "Tools > Enable use of external data files"
 
-TO-DO:
+Para Gusek llegue al resultado tiene que tener la siguiente configuracion:
+En Tools solo tiene que estar habilitado o activado lo siguiente:
+x Tools > use External .dat
+x Tools > Use Free MPS Format
+
+EL RESTO TIENE QUE ESTAR DESACTIVADO (también tiene que estar desactivado "Use improved MILP (All Cuts)")
+
+######################################
+######################################
 
 */
 
@@ -35,6 +43,8 @@ param num_clientes, integer, >= 1;
 param num_productos, integer, >= 1; 
 param num_vehiculos, integer, >= 1;
 
+# Gasto del vehiculo por cada kilometro recorrido
+param precio_por_km, > 0;
 
 # CONJUNTOS basicos ----------------------
 # ND el conjunto de depositos
@@ -126,7 +136,7 @@ var ST{i in Ntot, k in K}, integer, >= 0;
 # and the second section is related to the fixed cost for using
 # the vehicles.
 # La funcion objetivo minimiza el costo (longitud) del camino recorrido
-minimize zObjetivo_1: sum{i in Ntot, j in Ntot, k in K} c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
+minimize zObjetivo_1: precio_por_km * sum{i in Ntot, j in Ntot, k in K} c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
 
 
 # Restriccion 2:
@@ -149,6 +159,8 @@ s.t. restriccion_4{i in Nv, k in K}: sum{g in G} y[i,g,k] <= (M * sum{j in Ntot}
 ############## s.t. restriccion_4{i in Nv, k in K}: sum{g in G} y[i,g,k] <= (M * sum{j in Ntot: i!=j} x[j,i,k]);
 
 # Restriccion 5:
+# Constraints ( 4 ) and ( 5 ) state that the demand of customer i for products g can be fulfilled
+# by vehicle k only when this vehicle visits customer i .
 s.t. restriccion_5{k in K, i in Nv}: sum{j in Ntot} x[j,i,k] <=  sum{g in G} y[i,g,k];
 
 # Restriccion 6:
@@ -158,7 +170,6 @@ s.t. restriccion_6{j in Nv, k in K}: sum{i in Ntot} x[i,j,k] <= 1;
 # Restriccion 7:
 # Constraint ( 7 ) states that any vehicle that enters a node
 # should also depart from that node.
-#### s.t. restriccion_7{j in Ntot, k in K}: sum{i in Ntot: i!=j} x[i,j,k] = sum{i in Ntot: i!=j} x[j,i,k];
 s.t. restriccion_7{j in Ntot, k in K}: sum{i in Ntot} x[i,j,k] = sum{i in Ntot: i!=j} x[j,i,k];
 
 # Restriccion 8:
@@ -182,7 +193,6 @@ s.t. restriccion_11: sum{i in ND, k in K} ST[i,k] = 0;
 
 # Restriccion 12:
 s.t. restriccion_12{i in Ntot, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1 - x[i,j,k]);
-
 
 #### s.t. restriccion_12_bis{i in ND, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1 - x[i,j,k] * DQ[i,k]);
 s.t. restriccion_12_bis{i in ND, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] * DQ[i,k] + M * (1 - x[i,j,k]);
@@ -241,13 +251,24 @@ printf ("\n--------------------------------------------------");
 printf ("\n\n--------------------------------------------------");
 printf ("\n--------------------------------------------------");
 
-printf "\n\nResultado de la funcion objetivo: = %d",   sum{i in Ntot, j in Ntot, k in K: i!=j} c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
+printf "\n\nResultado de la funcion objetivo (gasto) : = %.2f",   sum{i in Ntot, j in Ntot, k in K: i!=j} precio_por_km * c[i,j] * x[i,j,k] + sum{k in K} fk[k] * u[k];
 printf ("\n--------------------------------------------------");
 
-printf "\n\nLa distancia maxima permitida para un vehiculo es = %d", MC;
+
 
 printf "\n\nEl camino optimo recorre una distancia = %d",   sum{i in Ntot, j in Ntot, k in K: i!=j} c[i,j] * x[i,j,k];
-printf "\n\nLa distancia maxima recorrida por un vehiculo es = %d", MC;
+
+printf "\n\nEl gasto por recorrer esos kilometros es de = %.2f",  precio_por_km * sum{i in Ntot, j in Ntot, k in K: i!=j}  c[i,j] * x[i,j,k];
+printf "\n\nEl precio por km es de = %.4f", precio_por_km;
+
+printf ("\n--------------------------------------------------");
+printf "\n\nEl recorrido optimo tiene un coste fijo %d",   sum{k in K} fk[k] * u[k];
+
+printf("\n\nVehíc.K  Coste.fijo.fk\n");
+printf{k in K : u[k] == 1} "  %3d  \t  %6d\n", k, fk[k];
+
+printf ("\n--------------------------------------------------");
+printf "\n\nLa distancia maxima permitida para un vehiculo es = %d", MC;
 
 printf("\n\nLa distancia recorrida por cada vehiculo es:\n Num.Vehíc.K  Distan.C\n");
 # printf{k in K:  u[k] == 1} "  %3d    \t   %6d\n", k, sum{i in Ntot, j in Ntot : i!=j} (c[i,j] * x[i,j,k]);
@@ -256,11 +277,6 @@ printf{k in K} "  %3d    \t   %6d\n", k, sum{i in Ntot, j in Ntot : i!=j} (c[i,j
 printf("\n\nEl recorrido de nodo a nodo es:\n  Nd.Orig.I  Nd.Dest.J  Num.Vehíc.K  Distan.C\n");
 printf{k in K, i in Ntot, j in Ntot :  x[i,j,k] == 1} "  %3d    \t %3d  \t %3d \t  %6d\n", i, j, k, c[i,j];
 
-printf ("\n--------------------------------------------------");
-printf "\n\nEl recorrido optimo tiene un coste fijo %d",   sum{k in K} fk[k] * u[k];
-
-printf("\n\nVehíc.K  Coste.fijo.fk\n");
-printf{k in K : u[k] == 1} "  %3d  \t  %6d\n", k, fk[k];
 
 /*
 printf ("\n--------------------------------------------------");
