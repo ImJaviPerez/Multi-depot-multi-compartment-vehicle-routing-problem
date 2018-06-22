@@ -5,20 +5,25 @@ import numpy as np
 
 
 num_depositos = 3
-num_clientes = 8
-num_productos = 4
+num_clientes = 6
+num_productos = 5
 # num_vehiculos debe ser mayor o igual que num_depositos
-num_vehiculos = 5
+num_vehiculos = 3
+
+# Gasto del vehiculo por cada kilometro recorrido
+# Por ejemplo 39.0 euros cada 100 km = 39.0 / 100 = 0.39
+precio_por_km = 0.39
+
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
 MC = 800
 
 
 distanc_min_entre_nodos = 1  # MC//100 #1
-distanc_max_entre_nodos = MC*(num_depositos/num_clientes)//5
+distanc_max_entre_nodos = MC//3
 
-min_fk_coste_fijo_vehic = MC//60
-max_fk_coste_fijo_vehic = MC//50
+min_fk_coste_fijo_vehic = (MC * precio_por_km) //4
+max_fk_coste_fijo_vehic = (MC * precio_por_km) //3
 
 max_demanda_por_producto = 50
 min_size_compartimento = max_demanda_por_producto * 2
@@ -41,8 +46,20 @@ distancia_aux = np.ndarray(shape=(nodos_tot+1,nodos_tot+1), dtype = int)
 
 
 
-strAux = ('# Prueba. Fichero aleatorio' + 
-          '\n# num_depositos = num_nodos - num_clientes ND')
+strAux = ('# Fichero aleatorio generado automaticamente\n')
+file.write(strAux)
+
+strAux = ('\n# Gasto del vehiculo por cada kilometro recorrido' + 
+          '\n# Por ejemplo si se gastan:' + 
+          '\n# ' +  str(precio_por_km * 100) + ' euros cada 100 km = ' +  
+          str(precio_por_km * 100) + ' / 100 = ' +  str(precio_por_km))
+file.write(strAux)
+strAux = ('\nparam precio_por_km := ' + str(precio_por_km) + ';') 
+file.write(strAux)
+
+
+
+strAux = ('\n\n# num_depositos = num_nodos - num_clientes ND')
 file.write(strAux)
 strAux = ('\nparam num_depositos := ' + str(num_depositos) + ';') 
 file.write(strAux)
@@ -71,7 +88,7 @@ strAux = ('\n\n# M un numero muy grande.' +
           '\n# En realidad basta con el (numero de arcos + 1) = \n' + 
           '# (num_depositos + num_clientes - 1)^2 + 1 = (' + 
           str(num_depositos) + ' + '+ str(num_clientes) + ' - 1)^2 + 1.' + 
-          '\n# Pero lo pongo un poco mas grande = (' +
+          '\n# Pero se pone un poco mas grande = (' +
           str(num_depositos) + ' + '+ str(num_clientes) + ' + 1)^2.')
 file.write(strAux)
 strAux = ('\nparam M := ' + str(M)  + ';')
