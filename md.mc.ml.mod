@@ -3,7 +3,7 @@
 Nombre: md.mc.ml.mod
 Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
 Fecha: 11-04-2018
-version: 1.2.001
+version: 1.3.001
 
 
 
@@ -66,7 +66,6 @@ set K := 1..num_vehiculos;
 
 # CONJUNTOS compuestos y PARAMETROS ----------------------
 # d_ig demanda del nodo i para el producto g
-#### param d{i in Ntot, g in G};
 param d{i in Nv, g in G};
 
 # Ntot_x_Ntot = conjunto todos los arcos entre nodos
@@ -94,6 +93,9 @@ param DQ{nd in ND, k in K}, binary;
 #        2  2   1    # Indica que en el deposito 2, el vehiculos 2; SI esta disponible.
 #        2  3   1    # Indica que en el deposito 3, el vehiculos 2; NO esta disponible.
 
+
+# S_ig = stock en el deposito i del producto g
+param S {nd in ND, g in K};
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
 # param MC{k in K};
@@ -196,6 +198,11 @@ s.t. restriccion_12{i in Ntot, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1
 
 #### s.t. restriccion_12_bis{i in ND, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] + M * (1 - x[i,j,k] * DQ[i,k]);
 s.t. restriccion_12_bis{i in ND, j in Nv, k in K}: ST[i,k] + 1 <= ST[j,k] * DQ[i,k] + M * (1 - x[i,j,k]);
+
+
+# Restriccion stock:
+# Cada deposito tiene un stock de cada producto. Los vehiculos de cada deposito pueden repartir como maximo el stock existente
+s.t. restriccion_stock{i in ND, g in G}: sum{k in K, j in Nv} y[j,g,k] * d[j,g] * DQ[i,k] <= S[i,g];
 
 # RESOLUCION 
 solve;
@@ -319,12 +326,22 @@ printf{k in K, g in G : u[k] == 1} "  %3d \t %3d \t %6d \t %6d\n", k, g, sum{j i
 
 
 
+printf ("\n--------------------------------------------------");
+printf("\n\nProductos que salen de cada deposito:");
+printf("\n\nDepos.D \t Prod.G \t Cant.Prod.g \t Stock.Prod.g\n");
+printf{nd in ND, g in G} "  %3d \t %3d \t %6d \t %6d\n", nd, g, sum{j in Nv, k in K : y[j,g,k] == 1 && DQ[nd,k] == 1 && u[k] == 1} d[j,g] * y[j,g,k], S[nd,g];
+
+
+
+
 # DATOS USADOS EN ESTE PROBLEMA ---------------
+# Los datos se encuentran en el fichero .dat
+# data;
+# CONJUNTOS DE VARIABLES
 set Ntot_x_Ntot, within Ntot cross Ntot;
 set Nv_x_G within Nv cross G;
 set ND_x_K within ND cross K;
-# Los datos se encuentran en el fichero .dat
-# data;
+set ND_x_G within ND cross G;
 
 
 end;

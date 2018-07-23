@@ -1,3 +1,4 @@
+# version: 1.3.001
 # Gasto del vehiculo por cada kilometro recorrido
 # Por ejemplo 39.0 euros cada 100 km = 39.0 / 100 = 0.39
 param precio_por_km := 0.39;
@@ -14,7 +15,7 @@ param num_vehiculos := 4;
 
 # MC la distancia maxima, que cada vehiculo se permite viajar
 ## param MC := 400;
-param MC := 1000;
+param MC := 400;
 
 # M un numero muy grande.
 # En realidad basta con el numero de arcos + 1. (4 + 6)^2 + 1.
@@ -161,7 +162,7 @@ param Q :=
     3  70
 ;
 
-## DQ_ik la lista de vehiculos k que salen del deposito i
+# DQ_ik la lista de vehiculos k que salen del deposito i
 param : ND_x_K : DQ :=
     1  1  1    # Indica que en el deposito 1 SI esta disponible vehiculo 1
     1  2  0    # Indica que en el deposito 1 NO esta disponible vehiculo 2
@@ -179,6 +180,22 @@ param : ND_x_K : DQ :=
     4  2  0    # Indica que en el deposito 4 NO esta disponible vehiculo 2
     4  3  0    # Indica que en el deposito 4 NO esta disponible vehiculo 3
     4  4  1    # Indica que en el deposito 4 SI esta disponible vehiculo 4
+;
+
+# S_ig = stock en el deposito i del producto g
+param : ND_x_G : S :=
+    1  1  100    # Indica las unidades que hay inicialmente en el deposito 1 del producto 1
+    1  2  100    # Indica las unidades que hay inicialmente en el deposito 1 del producto 2
+    1  3  100    # Indica las unidades que hay inicialmente en el deposito 1 del producto 3
+    2  1  100    # Indica las unidades que hay inicialmente en el deposito 2 del producto 1
+    2  2  100    # Indica las unidades que hay inicialmente en el deposito 2 del producto 2
+    2  3  100    # Indica las unidades que hay inicialmente en el deposito 2 del producto 3
+    3  1  100    # Indica las unidades que hay inicialmente en el deposito 3 del producto 1
+    3  2  50    # Indica las unidades que hay inicialmente en el deposito 3 del producto 2
+    3  3  100    # Indica las unidades que hay inicialmente en el deposito 3 del producto 3
+    4  1  100    # Indica las unidades que hay inicialmente en el deposito 4 del producto 1
+    4  2  100    # Indica las unidades que hay inicialmente en el deposito 4 del producto 2
+    4  3  100    # Indica las unidades que hay inicialmente en el deposito 4 del producto 3
 ;
 
 # fk el costo fijo de usar el vehiculo k

@@ -30,6 +30,10 @@ min_size_compartimento = max_demanda_por_producto * 2
 max_size_compartimento = max_demanda_por_producto * 4
 
 
+min_stock = min_size_compartimento * 2
+max_stock = max_size_compartimento * 3
+
+
 # ----------- Fin de la parametrizacion -----------
 print('INICIO: Se está creando el fichero datos.txt')
 nodos_tot = num_depositos+num_clientes
@@ -215,9 +219,38 @@ for i in range(1, num_depositos+1):
             file.write(strAux)
         
     offset_k += num_vehic_aux[i]
-    print('offset_k =', offset_k)
+    # print('offset_k =', offset_k)
 strAux = ('\n;')
 file.write(strAux)
+
+
+
+
+
+strAux = ('\n\n# S_ig = stock en el deposito i del producto g')
+file.write(strAux)
+# print(strAux)
+# Se ponen comentarios explicativos del estilo
+#    1  1  100    # Indica las unidades que hay inicialmente en el deposito 1 del producto 1
+#    1  2  100    # Indica las unidades que hay inicialmente en el deposito 1 del producto 2
+strAux = ('\nparam : ND_x_G : S :=')
+file.write(strAux)
+# print(strAux)
+
+for i in range(1, num_depositos+1):
+    for j in range(1, num_productos+1):
+        # Cantidad de stock en el deposito
+        valor_aux = random.randint(min_stock, max_stock)
+            
+        strAux = ('\n    ' + str(i) + '  ' + str(j) + '  ' + str(valor_aux) + 
+                      '    # Indica las unidades que hay inicialmente en el deposito ' + str(i) + 
+                      ' del producto ' + str(j))
+        # print(strAux)
+        file.write(strAux)
+strAux = ('\n;')
+file.write(strAux)
+
+
 
 
 strAux = ('\n\n# fk el costo fijo de usar el vehiculo k' +
