@@ -1,3 +1,4 @@
+# version: 1.3.001
 # This Python script generates a .dat file to test our program with random data.
 
 import random
