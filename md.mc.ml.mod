@@ -1,7 +1,7 @@
 /*
 
 Nombre: md.mc.ml.mod
-Autor: F. Javier Perez (https://gist.github.com/ImJaviPerez/)
+Autor: F. Javier Perez (https://github.com/ImJaviPerez/Multi-depot-multi-compartment-vehicle-routing-problem)
 Fecha: 11-04-2018
 version: 1.3.001
 
